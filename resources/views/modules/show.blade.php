@@ -376,12 +376,13 @@
                             <span class="task-count-badge">📋 {{ $totalTasks }} {{ Str::plural('task', $totalTasks) }} · {{ $pct }}% complete</span>
                         </div>
                         <div class="d-flex gap-2">
+                            <a href="{{ route('tasks.trash') }}" class="btn btn-sm btn-outline-secondary">🗑 Trash</a>
                             <a href="{{ route('tasks.create', ['module_id' => $module->id]) }}" class="btn btn-sm btn-outline-success">Add Task</a>
                             <a href="{{ route('modules.edit', $module) }}" class="btn btn-sm btn-outline-secondary">Edit</a>
                             <form action="{{ route('modules.destroy', $module) }}" method="POST" style="display: inline;">
                                 @csrf
                                 @method('DELETE')
-                                <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Are you sure?')">Delete</button>
+                                <button type="submit" class="btn btn-sm btn-outline-danger" onclick="confirmDelete(event, this, 'Delete this module?', 'All associated tasks will also be deleted.')">Delete</button>
                             </form>
                         </div>
                     </div>
@@ -403,7 +404,16 @@
                                         @if($task->image_path)
                                             <img src="{{ asset('storage/' . $task->image_path) }}" alt="{{ $task->title }}" class="task-image" draggable="false">
                                         @endif
-                                        <h3 class="h6 fw-bold mb-1" style="color: #1e1b4b;">{{ $task->title }}</h3>
+                                            <div class="d-flex justify-content-between align-items-start">
+                                                <h3 class="h6 fw-bold mb-1" style="color: #1e1b4b;">{{ $task->title }}</h3>
+                                                <form action="{{ route('tasks.destroy', $task->id) }}" method="POST" style="margin: 0;" onmouseenter="this.closest('.task-card').setAttribute('draggable', false)" onmouseleave="this.closest('.task-card').setAttribute('draggable', true)">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit" style="background: none; border: none; padding: 0; color: #ef4444; opacity: 0.6; transition: opacity 0.2s ease;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.6" onclick="confirmDelete(event, this, 'Delete this task?', 'It will be moved to the Trash Bin.')" title="Delete Task">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16"><path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z"/><path fill-rule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z"/></svg>
+                                                    </button>
+                                                </form>
+                                            </div>
                                         <small class="text-muted">{{ $task->created_at->format('M d') }}</small>
                                         
                                         <!-- Notes Section -->
@@ -466,7 +476,16 @@
                                         @if($task->image_path)
                                             <img src="{{ asset('storage/' . $task->image_path) }}" alt="{{ $task->title }}" class="task-image" draggable="false">
                                         @endif
-                                        <h3 class="h6 fw-bold mb-1" style="color: #1e1b4b;">{{ $task->title }}</h3>
+                                            <div class="d-flex justify-content-between align-items-start">
+                                                <h3 class="h6 fw-bold mb-1" style="color: #1e1b4b;">{{ $task->title }}</h3>
+                                                <form action="{{ route('tasks.destroy', $task->id) }}" method="POST" style="margin: 0;" onmouseenter="this.closest('.task-card').setAttribute('draggable', false)" onmouseleave="this.closest('.task-card').setAttribute('draggable', true)">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit" style="background: none; border: none; padding: 0; color: #ef4444; opacity: 0.6; transition: opacity 0.2s ease;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.6" onclick="confirmDelete(event, this, 'Delete this task?', 'It will be moved to the Trash Bin.')" title="Delete Task">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16"><path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z"/><path fill-rule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z"/></svg>
+                                                    </button>
+                                                </form>
+                                            </div>
                                         <small class="text-muted">{{ $task->created_at->format('M d') }}</small>
                                         
                                         <!-- Notes Section -->
@@ -529,7 +548,16 @@
                                         @if($task->image_path)
                                             <img src="{{ asset('storage/' . $task->image_path) }}" alt="{{ $task->title }}" class="task-image" draggable="false">
                                         @endif
-                                        <h3 class="h6 fw-bold mb-1" style="color: #1e1b4b;">{{ $task->title }}</h3>
+                                            <div class="d-flex justify-content-between align-items-start">
+                                                <h3 class="h6 fw-bold mb-1" style="color: #1e1b4b;">{{ $task->title }}</h3>
+                                                <form action="{{ route('tasks.destroy', $task->id) }}" method="POST" style="margin: 0;" onmouseenter="this.closest('.task-card').setAttribute('draggable', false)" onmouseleave="this.closest('.task-card').setAttribute('draggable', true)">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit" style="background: none; border: none; padding: 0; color: #ef4444; opacity: 0.6; transition: opacity 0.2s ease;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.6" onclick="confirmDelete(event, this, 'Delete this task?', 'It will be moved to the Trash Bin.')" title="Delete Task">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16"><path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z"/><path fill-rule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z"/></svg>
+                                                    </button>
+                                                </form>
+                                            </div>
                                         <small class="text-muted">{{ $task->created_at->format('M d') }}</small>
                                         
                                         <!-- Notes Section -->
@@ -769,28 +797,37 @@
             function deleteNote(noteId, taskId) {
                 const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
                 
-                if (!confirm('Are you sure you want to delete this note?')) {
-                    return;
-                }
-                
-                fetch(`/notes/${noteId}`, {
-                    method: 'DELETE',
-                    headers: {
-                        'X-CSRF-TOKEN': token
+                Swal.fire({
+                    title: 'Delete this note?',
+                    text: "You won't be able to revert this!",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#ef4444',
+                    cancelButtonColor: '#6b7280',
+                    confirmButtonText: 'Yes, delete it!'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        fetch(`/notes/${noteId}`, {
+                            method: 'DELETE',
+                            headers: {
+                                'X-CSRF-TOKEN': token
+                            }
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                location.reload();
+                            } else {
+                                Swal.fire('Error', 'Failed to delete note', 'error');
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                            Swal.fire('Error', 'Failed to delete note', 'error');
+                        });
                     }
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        location.reload();
-                    } else {
-                        alert('Failed to delete note');
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('Failed to delete note');
                 });
+                
             }
         </script>
         
@@ -822,5 +859,25 @@
                 </div>
             </div>
         </div>
+        <!-- SweetAlert2 -->
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+        <script>
+            function confirmDelete(event, button, title, text) {
+                event.preventDefault();
+                Swal.fire({
+                    title: title,
+                    text: text,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#ef4444',
+                    cancelButtonColor: '#6b7280',
+                    confirmButtonText: 'Yes, delete it!'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        button.closest('form').submit();
+                    }
+                });
+            }
+        </script>
     </body>
 </html>

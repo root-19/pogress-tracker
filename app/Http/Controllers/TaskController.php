@@ -63,4 +63,37 @@ class TaskController extends Controller
 
         return response()->json(['success' => true]);
     }
+
+    public function destroy(Task $task)
+    {
+        $task->delete(); // Soft delete
+        return back()->with('success', 'Task moved to trash.');
+    }
+
+    public function trash()
+    {
+        $tasks = Task::onlyTrashed()->with('module')->latest('deleted_at')->get();
+        return view('tasks.trash', compact('tasks'));
+    }
+
+    public function restore($id)
+    {
+        $task = Task::withTrashed()->findOrFail($id);
+        $task->restore();
+        
+        return redirect()->route('tasks.trash')->with('success', 'Task restored successfully.');
+    }
+
+    public function forceDelete($id)
+    {
+        $task = Task::withTrashed()->findOrFail($id);
+        
+        if ($task->image_path) {
+            Storage::disk('public')->delete($task->image_path);
+        }
+        
+        $task->forceDelete();
+        
+        return redirect()->route('tasks.trash')->with('success', 'Task permanently deleted.');
+    }
 }

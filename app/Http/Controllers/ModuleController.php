@@ -21,14 +21,19 @@ class ModuleController extends Controller
 
     public function store(Request $request)
     {
+        $request->merge(['slug' => Str::slug($request->name)]);
+        
         $request->validate([
             'name' => 'required|string|max:255',
+            'slug' => 'unique:modules,slug',
             'color' => 'required|string|regex:/^#[0-9A-Fa-f]{6}$/',
+        ], [
+            'slug.unique' => 'A module with a similar name already exists.'
         ]);
 
         Module::create([
             'name' => $request->name,
-            'slug' => Str::slug($request->name),
+            'slug' => $request->slug,
             'color' => $request->color,
         ]);
 
@@ -48,14 +53,19 @@ class ModuleController extends Controller
 
     public function update(Request $request, Module $module)
     {
+        $request->merge(['slug' => Str::slug($request->name)]);
+        
         $request->validate([
             'name' => 'required|string|max:255',
+            'slug' => 'unique:modules,slug,' . $module->id,
             'color' => 'required|string|regex:/^#[0-9A-Fa-f]{6}$/',
+        ], [
+            'slug.unique' => 'A module with a similar name already exists.'
         ]);
 
         $module->update([
             'name' => $request->name,
-            'slug' => Str::slug($request->name),
+            'slug' => $request->slug,
             'color' => $request->color,
         ]);
 

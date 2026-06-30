@@ -33,9 +33,13 @@ Route::put('/modules/{module}', [ModuleController::class, 'update'])->name('modu
 Route::delete('/modules/{module}', [ModuleController::class, 'destroy'])->name('modules.destroy');
 
 Route::get('/tasks', [TaskController::class, 'index'])->name('tasks.index');
+Route::get('/tasks/trash', [TaskController::class, 'trash'])->name('tasks.trash');
 Route::get('/tasks/create', [TaskController::class, 'create'])->name('tasks.create');
 Route::post('/tasks', [TaskController::class, 'store'])->name('tasks.store');
 Route::put('/tasks/{task}/status', [TaskController::class, 'updateStatus'])->name('tasks.updateStatus');
+Route::delete('/tasks/{task}', [TaskController::class, 'destroy'])->name('tasks.destroy');
+Route::put('/tasks/{id}/restore', [TaskController::class, 'restore'])->name('tasks.restore');
+Route::delete('/tasks/{id}/force-delete', [TaskController::class, 'forceDelete'])->name('tasks.forceDelete');
 
 Route::post('/notes', [NoteController::class, 'store'])->name('notes.store');
 Route::put('/notes/{note}', [NoteController::class, 'update'])->name('notes.update');

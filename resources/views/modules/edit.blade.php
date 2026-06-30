@@ -92,7 +92,7 @@
                     <div class="col-lg-6">
                         <div class="card-custom p-5">
                             <div class="text-center mb-5">
-                                <h1 class="display-5 fw-bold heading-gradient mb-3">Edit Module</h1>
+                                <h1 class="display-5 fw-bold" style="color: #4b5563;">Edit Module</h1>
                                 <p class="mb-0" style="color: #4b5563;">Update module details</p>
                             </div>
 
