@@ -222,6 +222,7 @@
                 border-radius: 0.75rem;
                 padding: 0.75rem;
                 margin-top: 0.75rem;
+                cursor: auto;
             }
             
             .note-item {
@@ -235,6 +236,14 @@
             
             .note-item:last-child {
                 margin-bottom: 0;
+            }
+            
+            .note-item [data-bs-toggle="collapse"][aria-expanded="true"] svg {
+                transform: rotate(180deg);
+            }
+            
+            .transition-transform {
+                transition: transform 0.2s ease;
             }
             
             .btn-add-note {
@@ -253,19 +262,30 @@
                 color: #4c1d95;
             }
             
-            .btn-delete-note {
-                background: none;
+            .btn-note-action {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                width: 24px;
+                height: 24px;
+                border-radius: 6px;
                 border: none;
-                color: #ef4444;
-                font-size: 0.75rem;
-                padding: 0.25rem;
-                cursor: pointer;
-                opacity: 0.6;
-                transition: opacity 0.2s ease;
+                background: rgba(0,0,0,0.04);
+                color: #6b7280;
+                transition: all 0.2s ease;
+                padding: 0;
             }
-            
-            .btn-delete-note:hover {
-                opacity: 1;
+            .btn-note-action:hover {
+                background: rgba(0,0,0,0.08);
+                color: #374151;
+            }
+            .btn-note-edit:hover {
+                background: rgba(99, 102, 241, 0.15);
+                color: #4f46e5;
+            }
+            .btn-note-delete:hover {
+                background: rgba(239, 68, 68, 0.15);
+                color: #dc2626;
             }
             
             .heading-gradient {
@@ -365,6 +385,7 @@
                                     <span class="task-count-badge">📋 {{ $totalTasks }} {{ Str::plural('task', $totalTasks) }} · {{ $pct }}% complete</span>
                                 </div>
                                 <div class="d-flex gap-2">
+                                    <a href="{{ route('tasks.create', ['module_id' => $module->id]) }}" class="btn btn-sm btn-outline-success">Add Task</a>
                                     <a href="{{ route('modules.show', $module) }}" class="btn btn-sm btn-outline-primary">View</a>
                                     <a href="{{ route('modules.edit', $module) }}" class="btn btn-sm btn-outline-secondary">Edit</a>
                                     <form action="{{ route('modules.destroy', $module) }}" method="POST" style="display: inline;">
@@ -396,7 +417,7 @@
                                                 <small class="text-muted">{{ $task->created_at->format('M d') }}</small>
                                                 
                                                 <!-- Notes Section -->
-                                                <div class="notes-section">
+                                                <div class="notes-section" onmouseenter="this.closest('.task-card').setAttribute('draggable', false)" onmouseleave="this.closest('.task-card').setAttribute('draggable', true)">
                                                     <div class="d-flex justify-content-between align-items-center mb-2">
                                                         <small class="fw-bold" style="color: #6366f1;">Notes ({{ $task->notes->count() }})</small>
                                                         <button class="btn-add-note" onclick="openNoteModal({{ $task->id }})">+ Add Note</button>
@@ -405,10 +426,31 @@
                                                         @foreach($task->notes as $note)
                                                             <div class="note-item">
                                                                 <div class="d-flex justify-content-between align-items-start">
-                                                                    <div style="flex: 1; margin-right: 0.5rem; color: {{ $note->color }};">{{ $note->content }}</div>
-                                                                    <button class="btn-delete-note" onclick="deleteNote({{ $note->id }}, {{ $task->id }})">×</button>
+                                                                    <div style="flex: 1; min-width: 0;">
+                                                                        <div class="d-flex align-items-center justify-content-between" style="cursor: pointer;" data-bs-toggle="collapse" data-bs-target="#collapseNote{{ $note->id }}" aria-expanded="false">
+                                                                            <div class="text-truncate fw-medium" style="color: {{ $note->color }}; font-size: 0.8rem; padding-right: 8px;">
+                                                                                {{ Str::limit(str_replace("\n", " ", $note->content), 40) }}
+                                                                            </div>
+                                                                            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" class="bi bi-chevron-down text-muted transition-transform flex-shrink-0" viewBox="0 0 16 16">
+                                                                              <path fill-rule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z"/>
+                                                                            </svg>
+                                                                        </div>
+                                                                        
+                                                                        <div class="collapse mt-2" id="collapseNote{{ $note->id }}">
+                                                                            <div style="color: {{ $note->color }}; white-space: pre-wrap; font-size: 0.8rem; word-break: break-word;" class="mb-1">{{ $note->content }}</div>
+                                                                            <small class="text-muted" style="font-size: 0.7rem;">{{ $note->created_at->format('M d, H:i') }}</small>
+                                                                            <div id="raw-note-content-{{ $note->id }}" style="display: none;">{{ $note->content }}</div>
+                                                                        </div>
+                                                                    </div>
+                                                                    <div class="d-flex align-items-center gap-1 ms-2 flex-shrink-0">
+                                                                        <button class="btn-note-action btn-note-edit" onclick="editNote({{ $note->id }}, {{ $task->id }}, '{{ $note->color }}')" title="Edit note">
+                                                                            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" viewBox="0 0 16 16"><path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168l10-10zM11.207 2.5 13.5 4.793 14.793 3.5 12.5 1.207 11.207 2.5zm1.586 3L10.5 3.207 4 9.707V10h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.293l6.5-6.5zm-9.761 5.175-.106.106-1.528 3.821 3.821-1.528.106-.106A.5.5 0 0 1 5 12.5V12h-.5a.5.5 0 0 1-.5-.5V11h-.5a.5.5 0 0 1-.468-.325z"/></svg>
+                                                                        </button>
+                                                                        <button class="btn-note-action btn-note-delete" onclick="deleteNote({{ $note->id }}, {{ $task->id }})" title="Delete note">
+                                                                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16"><path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/></svg>
+                                                                        </button>
+                                                                    </div>
                                                                 </div>
-                                                                <small class="text-muted" style="font-size: 0.7rem;">{{ $note->created_at->format('M d, H:i') }}</small>
                                                             </div>
                                                         @endforeach
                                                     @else
@@ -438,7 +480,7 @@
                                                 <small class="text-muted">{{ $task->created_at->format('M d') }}</small>
                                                 
                                                 <!-- Notes Section -->
-                                                <div class="notes-section">
+                                                <div class="notes-section" onmouseenter="this.closest('.task-card').setAttribute('draggable', false)" onmouseleave="this.closest('.task-card').setAttribute('draggable', true)">
                                                     <div class="d-flex justify-content-between align-items-center mb-2">
                                                         <small class="fw-bold" style="color: #6366f1;">Notes ({{ $task->notes->count() }})</small>
                                                         <button class="btn-add-note" onclick="openNoteModal({{ $task->id }})">+ Add Note</button>
@@ -447,10 +489,31 @@
                                                         @foreach($task->notes as $note)
                                                             <div class="note-item">
                                                                 <div class="d-flex justify-content-between align-items-start">
-                                                                    <div style="flex: 1; margin-right: 0.5rem; color: {{ $note->color }};">{{ $note->content }}</div>
-                                                                    <button class="btn-delete-note" onclick="deleteNote({{ $note->id }}, {{ $task->id }})">×</button>
+                                                                    <div style="flex: 1; min-width: 0;">
+                                                                        <div class="d-flex align-items-center justify-content-between" style="cursor: pointer;" data-bs-toggle="collapse" data-bs-target="#collapseNote{{ $note->id }}" aria-expanded="false">
+                                                                            <div class="text-truncate fw-medium" style="color: {{ $note->color }}; font-size: 0.8rem; padding-right: 8px;">
+                                                                                {{ Str::limit(str_replace("\n", " ", $note->content), 40) }}
+                                                                            </div>
+                                                                            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" class="bi bi-chevron-down text-muted transition-transform flex-shrink-0" viewBox="0 0 16 16">
+                                                                              <path fill-rule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z"/>
+                                                                            </svg>
+                                                                        </div>
+                                                                        
+                                                                        <div class="collapse mt-2" id="collapseNote{{ $note->id }}">
+                                                                            <div style="color: {{ $note->color }}; white-space: pre-wrap; font-size: 0.8rem; word-break: break-word;" class="mb-1">{{ $note->content }}</div>
+                                                                            <small class="text-muted" style="font-size: 0.7rem;">{{ $note->created_at->format('M d, H:i') }}</small>
+                                                                            <div id="raw-note-content-{{ $note->id }}" style="display: none;">{{ $note->content }}</div>
+                                                                        </div>
+                                                                    </div>
+                                                                    <div class="d-flex align-items-center gap-1 ms-2 flex-shrink-0">
+                                                                        <button class="btn-note-action btn-note-edit" onclick="editNote({{ $note->id }}, {{ $task->id }}, '{{ $note->color }}')" title="Edit note">
+                                                                            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" viewBox="0 0 16 16"><path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168l10-10zM11.207 2.5 13.5 4.793 14.793 3.5 12.5 1.207 11.207 2.5zm1.586 3L10.5 3.207 4 9.707V10h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.293l6.5-6.5zm-9.761 5.175-.106.106-1.528 3.821 3.821-1.528.106-.106A.5.5 0 0 1 5 12.5V12h-.5a.5.5 0 0 1-.5-.5V11h-.5a.5.5 0 0 1-.468-.325z"/></svg>
+                                                                        </button>
+                                                                        <button class="btn-note-action btn-note-delete" onclick="deleteNote({{ $note->id }}, {{ $task->id }})" title="Delete note">
+                                                                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16"><path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/></svg>
+                                                                        </button>
+                                                                    </div>
                                                                 </div>
-                                                                <small class="text-muted" style="font-size: 0.7rem;">{{ $note->created_at->format('M d, H:i') }}</small>
                                                             </div>
                                                         @endforeach
                                                     @else
@@ -480,7 +543,7 @@
                                                 <small class="text-muted">{{ $task->created_at->format('M d') }}</small>
                                                 
                                                 <!-- Notes Section -->
-                                                <div class="notes-section">
+                                                <div class="notes-section" onmouseenter="this.closest('.task-card').setAttribute('draggable', false)" onmouseleave="this.closest('.task-card').setAttribute('draggable', true)">
                                                     <div class="d-flex justify-content-between align-items-center mb-2">
                                                         <small class="fw-bold" style="color: #6366f1;">Notes ({{ $task->notes->count() }})</small>
                                                         <button class="btn-add-note" onclick="openNoteModal({{ $task->id }})">+ Add Note</button>
@@ -489,10 +552,31 @@
                                                         @foreach($task->notes as $note)
                                                             <div class="note-item">
                                                                 <div class="d-flex justify-content-between align-items-start">
-                                                                    <div style="flex: 1; margin-right: 0.5rem; color: {{ $note->color }};">{{ $note->content }}</div>
-                                                                    <button class="btn-delete-note" onclick="deleteNote({{ $note->id }}, {{ $task->id }})">×</button>
+                                                                    <div style="flex: 1; min-width: 0;">
+                                                                        <div class="d-flex align-items-center justify-content-between" style="cursor: pointer;" data-bs-toggle="collapse" data-bs-target="#collapseNote{{ $note->id }}" aria-expanded="false">
+                                                                            <div class="text-truncate fw-medium" style="color: {{ $note->color }}; font-size: 0.8rem; padding-right: 8px;">
+                                                                                {{ Str::limit(str_replace("\n", " ", $note->content), 40) }}
+                                                                            </div>
+                                                                            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" class="bi bi-chevron-down text-muted transition-transform flex-shrink-0" viewBox="0 0 16 16">
+                                                                              <path fill-rule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z"/>
+                                                                            </svg>
+                                                                        </div>
+                                                                        
+                                                                        <div class="collapse mt-2" id="collapseNote{{ $note->id }}">
+                                                                            <div style="color: {{ $note->color }}; white-space: pre-wrap; font-size: 0.8rem; word-break: break-word;" class="mb-1">{{ $note->content }}</div>
+                                                                            <small class="text-muted" style="font-size: 0.7rem;">{{ $note->created_at->format('M d, H:i') }}</small>
+                                                                            <div id="raw-note-content-{{ $note->id }}" style="display: none;">{{ $note->content }}</div>
+                                                                        </div>
+                                                                    </div>
+                                                                    <div class="d-flex align-items-center gap-1 ms-2 flex-shrink-0">
+                                                                        <button class="btn-note-action btn-note-edit" onclick="editNote({{ $note->id }}, {{ $task->id }}, '{{ $note->color }}')" title="Edit note">
+                                                                            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" viewBox="0 0 16 16"><path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168l10-10zM11.207 2.5 13.5 4.793 14.793 3.5 12.5 1.207 11.207 2.5zm1.586 3L10.5 3.207 4 9.707V10h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.293l6.5-6.5zm-9.761 5.175-.106.106-1.528 3.821 3.821-1.528.106-.106A.5.5 0 0 1 5 12.5V12h-.5a.5.5 0 0 1-.5-.5V11h-.5a.5.5 0 0 1-.468-.325z"/></svg>
+                                                                        </button>
+                                                                        <button class="btn-note-action btn-note-delete" onclick="deleteNote({{ $note->id }}, {{ $task->id }})" title="Delete note">
+                                                                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16"><path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/></svg>
+                                                                        </button>
+                                                                    </div>
                                                                 </div>
-                                                                <small class="text-muted" style="font-size: 0.7rem;">{{ $note->created_at->format('M d, H:i') }}</small>
                                                             </div>
                                                         @endforeach
                                                     @else
@@ -635,15 +719,35 @@
             }
             
             // Notes functionality
+            function editNote(noteId, taskId, color) {
+                const content = document.getElementById(`raw-note-content-${noteId}`).textContent;
+                
+                document.getElementById('taskIdInput').value = taskId;
+                document.getElementById('noteIdInput').value = noteId;
+                document.getElementById('noteContent').value = content;
+                document.getElementById('noteColor').value = color;
+                
+                document.getElementById('noteModalLabel').innerText = 'Edit Note';
+                
+                const modal = new bootstrap.Modal(document.getElementById('noteModal'));
+                modal.show();
+            }
+
             function openNoteModal(taskId) {
                 document.getElementById('taskIdInput').value = taskId;
+                document.getElementById('noteIdInput').value = '';
                 document.getElementById('noteContent').value = '';
+                document.getElementById('noteColor').value = '#1e1b4b';
+                
+                document.getElementById('noteModalLabel').innerText = 'Add Note';
+                
                 const modal = new bootstrap.Modal(document.getElementById('noteModal'));
                 modal.show();
             }
             
             function saveNote() {
                 const taskId = document.getElementById('taskIdInput').value;
+                const noteId = document.getElementById('noteIdInput').value;
                 const content = document.getElementById('noteContent').value;
                 const color = document.getElementById('noteColor').value;
                 const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
@@ -653,8 +757,11 @@
                     return;
                 }
                 
-                fetch('/notes', {
-                    method: 'POST',
+                const url = noteId ? `/notes/${noteId}` : '/notes';
+                const method = noteId ? 'PUT' : 'POST';
+                
+                fetch(url, {
+                    method: method,
                     headers: {
                         'Content-Type': 'application/json',
                         'X-CSRF-TOKEN': token
@@ -717,6 +824,7 @@
                     </div>
                     <div class="modal-body">
                         <input type="hidden" id="taskIdInput">
+                        <input type="hidden" id="noteIdInput">
                         <div class="mb-3">
                             <label for="noteContent" class="form-label">Note</label>
                             <textarea class="form-control" id="noteContent" rows="4" placeholder="Enter your note, question, or progress update..."></textarea>

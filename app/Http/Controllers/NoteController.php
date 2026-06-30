@@ -32,4 +32,22 @@ class NoteController extends Controller
         $note->delete();
         return response()->json(['success' => true]);
     }
+
+    public function update(Request $request, Note $note)
+    {
+        $request->validate([
+            'content' => 'required|string',
+            'color' => 'required|string|regex:/^#[0-9A-Fa-f]{6}$/',
+        ]);
+
+        $note->update([
+            'content' => $request->content,
+            'color' => $request->color,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'note' => $note
+        ]);
+    }
 }

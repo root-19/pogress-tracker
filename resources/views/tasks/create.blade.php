@@ -118,8 +118,8 @@
                     <div class="col-lg-8">
                         <div class="card-custom p-5">
                             <div class="text-center mb-5">
-                                <h1 class="display-5 fw-bold heading-gradient mb-3">Create New Task</h1>
-                                <p class="mb-0" style="color: #4b5563;">Add a new task to track your progress</p>
+                                <h1 class="display-5 fw-bold text-dark mb-3">Create New Task</h1>
+                                <p class="mb-0" style="color: #2065c5ff;">Add a new task to track your progress</p>
                             </div>
 
                             @if($errors->any())
@@ -145,7 +145,7 @@
                                             required>
                                         <option value="">Select a module</option>
                                         @foreach($modules as $module)
-                                            <option value="{{ $module->id }}" {{ old('module_id') == $module->id ? 'selected' : '' }}>
+                                            <option value="{{ $module->id }}" {{ (old('module_id') ?? request('module_id')) == $module->id ? 'selected' : '' }}>
                                                 {{ $module->name }}
                                             </option>
                                         @endforeach

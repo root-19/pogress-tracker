@@ -38,4 +38,5 @@ Route::post('/tasks', [TaskController::class, 'store'])->name('tasks.store');
 Route::put('/tasks/{task}/status', [TaskController::class, 'updateStatus'])->name('tasks.updateStatus');
 
 Route::post('/notes', [NoteController::class, 'store'])->name('notes.store');
+Route::put('/notes/{note}', [NoteController::class, 'update'])->name('notes.update');
 Route::delete('/notes/{note}', [NoteController::class, 'destroy'])->name('notes.destroy');
